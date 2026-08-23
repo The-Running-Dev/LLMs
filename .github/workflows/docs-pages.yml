@@ -145,6 +145,7 @@ jobs:
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
+      # verification: true
       - name: Build OCI artifact
         uses: docker/build-push-action@v6
         with:
