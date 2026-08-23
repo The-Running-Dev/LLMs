@@ -5,6 +5,7 @@ param(
     [switch]$SkipGitHub,
     [switch]$SkipPlaywright,
     [switch]$SkipGraphify,
+    [switch]$IncludeMemoryMcp,
     [switch]$IncludeFilesystem,
     [string[]]$FilesystemPath = @(),
     [switch]$IncludeDatabase,

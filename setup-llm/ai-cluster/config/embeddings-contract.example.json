@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "route": "embeddings",
+  "vector": {
+    "dimension": 8,
+    "normalized": false,
+    "distance_metric": "cosine"
+  },
+  "batch": {
+    "max_inputs": 128,
+    "requires_stable_order": true
+  }
+}

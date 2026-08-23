@@ -49,6 +49,11 @@ Language Starters
 
 ```text
 setup-llm/
+├── ai-cluster/                     # Local AI cluster compose/config/scripts/tests
+│   ├── compose.yaml                # AI gateway + provider topology by profile
+│   ├── config/                     # LiteLLM routing and model-manifest templates
+│   ├── scripts/                    # Start/stop/test/measure workflow entry points
+│   └── tests/                      # Pester validation and contract placeholders
 ├── scripts/
 │   ├── setup.ps1                   # OS-detecting entry point
 │   ├── setup-windows.ps1           # Winget prerequisites

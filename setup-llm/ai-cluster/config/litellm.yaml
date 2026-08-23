@@ -1,0 +1,41 @@
+model_list:
+  - model_name: coding
+    litellm_params:
+      model: openai/local-coding
+      api_base: os.environ/LOCAL_CODING_BASE_URL
+      api_key: os.environ/LOCAL_INFERENCE_API_KEY
+
+  - model_name: general
+    litellm_params:
+      model: openai/local-coding
+      api_base: os.environ/LOCAL_CODING_BASE_URL
+      api_key: os.environ/LOCAL_INFERENCE_API_KEY
+
+  - model_name: vision
+    litellm_params:
+      model: openai/local-coding
+      api_base: os.environ/LOCAL_CODING_BASE_URL
+      api_key: os.environ/LOCAL_INFERENCE_API_KEY
+
+  - model_name: multimodal
+    litellm_params:
+      model: openai/local-coding
+      api_base: os.environ/LOCAL_CODING_BASE_URL
+      api_key: os.environ/LOCAL_INFERENCE_API_KEY
+
+  - model_name: embeddings
+    litellm_params:
+      model: openai/local-embeddings
+      api_base: os.environ/LOCAL_EMBEDDINGS_BASE_URL
+      api_key: os.environ/LOCAL_INFERENCE_API_KEY
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  disable_spend_logs: true
+  disable_error_logs: false
+  request_timeout: 60
+  telemetry: false
+
+litellm_settings:
+  drop_params: true
+  add_function_to_prompt: false

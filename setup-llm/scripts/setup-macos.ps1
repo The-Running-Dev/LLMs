@@ -2,6 +2,7 @@
 param(
     [ValidateSet('Codex', 'ClaudeCode', 'Both')][string]$Client = 'Both',
     [switch]$SkipClaudeMem, [switch]$SkipGitHub, [switch]$SkipPlaywright, [switch]$SkipGraphify,
+    [switch]$IncludeContext7, [switch]$IncludeMemoryMcp, [switch]$IncludeDockerMcp,
     [switch]$IncludeFilesystem, [string[]]$FilesystemPath = @(),
     [switch]$IncludeDatabase, [string]$DatabaseName, [string]$DatabaseCommand,
     [string[]]$DatabaseArgument = @()
@@ -42,6 +43,7 @@ function Install-NpmCommand {
 }
 
 Write-Step 'Installing macOS prerequisites with Homebrew and npm'
+if (-not (Test-CommandAvailable 'node')) { Install-BrewCommand 'node' 'node' 'Node.js' }
 if (-not (Test-CommandAvailable 'npm') -or -not (Test-CommandAvailable 'npx')) { Install-BrewCommand 'npm' 'node' 'Node.js LTS' }
 Install-BrewCommand 'act' 'act' 'act local GitHub Actions runner'
 if (-not $SkipGitHub) { Install-BrewCommand 'gh' 'gh' 'GitHub CLI' }

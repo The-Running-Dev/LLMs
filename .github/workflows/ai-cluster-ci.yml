@@ -1,0 +1,62 @@
+name: AI Cluster CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/ai-cluster-ci.yml'
+      - 'setup-llm/ai-cluster/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/ai-cluster-ci.yml'
+      - 'setup-llm/ai-cluster/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ai-cluster-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate AI cluster contracts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Ensure PowerShell modules
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          if (-not (Get-Module -ListAvailable -Name Pester)) {
+            Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck
+          }
+
+      - name: Static and config checks
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File setup-llm/ai-cluster/scripts/Test-AiCluster.ps1
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File setup-llm/ai-cluster/scripts/Test-OperationalControls.ps1
+
+      - name: Pester suite
+        shell: pwsh
+        run: |
+          Invoke-Pester -Path setup-llm/ai-cluster/tests -Output Detailed
+
+      - name: Gateway contract checks (deterministic backends)
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File setup-llm/ai-cluster/scripts/Test-GatewayContract.ps1
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File setup-llm/ai-cluster/scripts/Test-EmbeddingsContract.ps1
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File setup-llm/ai-cluster/scripts/Test-ProviderReplacementAndFailure.ps1
+
+      - name: Hardware smoke suite (skips in standard CI)
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File setup-llm/ai-cluster/scripts/Test-HardwareSmoke.ps1

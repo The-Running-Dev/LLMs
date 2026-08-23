@@ -2,6 +2,7 @@
 param(
     [ValidateSet('Codex', 'ClaudeCode', 'Both')][string]$Client = 'Both',
     [switch]$SkipClaudeMem, [switch]$SkipGitHub, [switch]$SkipPlaywright, [switch]$SkipGraphify,
+    [switch]$IncludeContext7, [switch]$IncludeMemoryMcp, [switch]$IncludeDockerMcp,
     [switch]$IncludeFilesystem, [string[]]$FilesystemPath = @(),
     [switch]$IncludeDatabase, [string]$DatabaseName, [string]$DatabaseCommand,
     [string[]]$DatabaseArgument = @()
@@ -12,7 +13,7 @@ $ErrorActionPreference = 'Stop'
 $modulePath = Join-Path $PSScriptRoot 'modules/Setup.psm1'
 Import-Module $modulePath -Force
 
-if (-not ($PSVersionTable.PSVersion.Major -le 5 -or $IsWindows)) { throw 'setup-windows.ps1 can only run on Windows.' }
+if (-not (Test-IsWindowsPlatform)) { throw 'setup-windows.ps1 can only run on Windows.' }
 
 function Install-WingetCommand {
     param([string]$Command, [string]$PackageId, [string]$DisplayName)
@@ -27,6 +28,7 @@ function Install-WingetCommand {
 }
 
 Write-Step 'Installing Windows prerequisites with Winget'
+if (-not (Test-CommandAvailable 'node')) { Install-WingetCommand 'node' 'OpenJS.NodeJS.LTS' 'Node.js LTS' }
 if (-not (Test-CommandAvailable 'npm') -or -not (Test-CommandAvailable 'npx')) { Install-WingetCommand 'npm' 'OpenJS.NodeJS.LTS' 'Node.js LTS' }
 Install-WingetCommand 'act' 'nektos.act' 'act local GitHub Actions runner'
 if ($Client -in @('Codex', 'Both')) { Install-WingetCommand 'codex' 'OpenAI.Codex' 'Codex CLI' }

@@ -1,0 +1,9 @@
+# Local AI cluster secrets and state
+.env
+.env.*
+state/
+logs/
+
+# Local model manifests and benchmark captures
+*.bench.json
+*.diagnostics.txt

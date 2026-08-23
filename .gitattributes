@@ -1,0 +1,33 @@
+# Normalize every text file to LF in the working tree, on every platform.
+#
+# Without this, Git's core.autocrlf on a Windows checkout hands CRLF files to
+# Prettier, which defaults to LF, so `npm run format:check` fails on Windows for
+# files that are byte-correct in the repository. Pinning the working-tree ending
+# makes the check mean the same thing everywhere.
+* text=auto eol=lf
+
+# Shell scripts must stay LF even where a platform would prefer otherwise.
+*.sh text eol=lf
+
+# Batch files are the one exception: the Windows interpreter needs CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets: never normalized, never diffed as text.
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.gz binary
+
+# Lockfiles are generated; keep them out of diffs and merge conflicts.
+package-lock.json -diff
+pnpm-lock.yaml -diff

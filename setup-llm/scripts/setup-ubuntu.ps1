@@ -2,6 +2,7 @@
 param(
     [ValidateSet('Codex', 'ClaudeCode', 'Both')][string]$Client = 'Both',
     [switch]$SkipClaudeMem, [switch]$SkipGitHub, [switch]$SkipPlaywright, [switch]$SkipGraphify,
+    [switch]$IncludeContext7, [switch]$IncludeMemoryMcp, [switch]$IncludeDockerMcp,
     [switch]$IncludeFilesystem, [string[]]$FilesystemPath = @(),
     [switch]$IncludeDatabase, [string]$DatabaseName, [string]$DatabaseCommand,
     [string[]]$DatabaseArgument = @()
@@ -76,6 +77,7 @@ function Install-ActCommand {
 }
 
 Write-Step 'Installing Ubuntu prerequisites with apt, pipx, and npm'
+if (-not (Test-CommandAvailable 'node')) { Install-AptCommand 'node' @('nodejs', 'npm') 'Node.js and npm' }
 if (-not (Test-CommandAvailable 'npm') -or -not (Test-CommandAvailable 'npx')) { Install-AptCommand 'npm' @('nodejs', 'npm') 'Node.js and npm' }
 Install-ActCommand
 if (-not $SkipGitHub) { Install-AptCommand 'gh' @('gh') 'GitHub CLI' }

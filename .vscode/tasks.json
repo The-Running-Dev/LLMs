@@ -1,0 +1,308 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Workstation Setup (Preview)",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "setup-llm/scripts/setup.ps1",
+        "-Client",
+        "Both",
+        "-WhatIf"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Workstation Setup",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "setup-llm/scripts/setup.ps1",
+        "-Client",
+        "Both"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Workstation Setup (No claude-mem)",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "setup-llm/scripts/setup.ps1",
+        "-Client",
+        "Both",
+        "-SkipClaudeMem"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "MCP: Register Context7 (Codex)",
+      "type": "shell",
+      "command": "codex",
+      "args": [
+        "mcp",
+        "add",
+        "context7",
+        "--",
+        "npx",
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "MCP: Register Memory (Codex)",
+      "type": "shell",
+      "command": "codex",
+      "args": [
+        "mcp",
+        "add",
+        "memory",
+        "--",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "MCP: Register Docker (Codex)",
+      "type": "shell",
+      "command": "codex",
+      "args": [
+        "mcp",
+        "add",
+        "docker",
+        "--",
+        "docker",
+        "mcp",
+        "gateway",
+        "run"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "MCP: Register Context7 (Claude Code)",
+      "type": "shell",
+      "command": "claude",
+      "args": [
+        "mcp",
+        "add",
+        "--scope",
+        "user",
+        "context7",
+        "--",
+        "npx",
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "MCP: Register Memory (Claude Code)",
+      "type": "shell",
+      "command": "claude",
+      "args": [
+        "mcp",
+        "add",
+        "--scope",
+        "user",
+        "memory",
+        "--",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "MCP: Register Docker (Claude Code)",
+      "type": "shell",
+      "command": "claude",
+      "args": [
+        "mcp",
+        "add",
+        "--scope",
+        "user",
+        "docker",
+        "--",
+        "docker",
+        "mcp",
+        "gateway",
+        "run"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "MCP: Doctor Workspace Profiles",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "setup-llm/scripts/doctor-workstation.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Workstation Setup + Memory/Context7/GitHub/Docker MCP",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Workstation Setup",
+        "MCP: Register Context7 (Codex)",
+        "MCP: Register Memory (Codex)",
+        "MCP: Register Docker (Codex)",
+        "MCP: Register Context7 (Claude Code)",
+        "MCP: Register Memory (Claude Code)",
+        "MCP: Register Docker (Claude Code)"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "AI Cluster Setup (Opt-in)",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "setup-llm/scripts/setup-ai-cluster.ps1",
+        "-InitializeEnv",
+        "-InitializeLocalInferenceConfig",
+        "-RunHeadlessConfigTest"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI Cluster Doctor",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "setup-llm/scripts/doctor-ai-cluster.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      },
+      "problemMatcher": []
+    }
+  ]
+}

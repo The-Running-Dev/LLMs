@@ -1,7 +1,0 @@
-node_modules/
-dist/
-coverage/
-.env
-# Anchored so they only match runtime directories, not src/cache and src/output.
-/.cache/
-/output/

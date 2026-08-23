@@ -1,0 +1,240 @@
+name: ai-cluster
+
+services:
+  gateway:
+    image: ghcr.io/berriai/litellm:main-stable
+    command:
+      - --config
+      - /app/config/litellm.yaml
+      - --port
+      - "4000"
+      - --num_workers
+      - "1"
+    env_file:
+      - .env
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?Set LITELLM_MASTER_KEY in ai-cluster/.env}
+      LOCAL_CODING_BASE_URL: ${LOCAL_CODING_BASE_URL:-http://host.docker.internal:8081/v1}
+      LOCAL_EMBEDDINGS_BASE_URL: ${LOCAL_EMBEDDINGS_BASE_URL:-http://host.docker.internal:8082/v1}
+      LOCAL_INFERENCE_API_KEY: ${LOCAL_INFERENCE_API_KEY:?Set LOCAL_INFERENCE_API_KEY in ai-cluster/.env}
+    ports:
+      - "127.0.0.1:${GATEWAY_BIND_PORT:-4000}:4000"
+    volumes:
+      - ./config/litellm.yaml:/app/config/litellm.yaml:ro
+      - litellm-data:/app/.cache/litellm
+    networks:
+      - ai-cluster-net
+    depends_on:
+      coding-backend:
+        condition: service_healthy
+      embeddings-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,urllib.request; req=urllib.request.Request('http://127.0.0.1:4000/health', headers={'Authorization': 'Bearer ' + os.environ.get('LITELLM_MASTER_KEY','')}); urllib.request.urlopen(req, timeout=5)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    profiles:
+      - headless
+      - ui
+      - cloud
+
+  coding-backend:
+    image: python:3.12-alpine
+    command:
+      - python
+      - /app/mock-openai-backend.py
+      - --mode
+      - chat
+      - --port
+      - "8081"
+      - --name
+      - local-coding
+    volumes:
+      - ./tests/fixtures/mock-openai-backend.py:/app/mock-openai-backend.py:ro
+    environment:
+      BACKEND_API_KEY: ${LOCAL_INFERENCE_API_KEY:?Set LOCAL_INFERENCE_API_KEY in ai-cluster/.env}
+    networks:
+      - ai-cluster-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/health', timeout=5)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    profiles:
+      - headless
+      - ui
+      - cloud
+
+  embeddings-backend:
+    image: python:3.12-alpine
+    command:
+      - python
+      - /app/mock-openai-backend.py
+      - --mode
+      - embeddings
+      - --port
+      - "8082"
+      - --name
+      - local-embeddings
+    volumes:
+      - ./tests/fixtures/mock-openai-backend.py:/app/mock-openai-backend.py:ro
+    environment:
+      BACKEND_API_KEY: ${LOCAL_INFERENCE_API_KEY:?Set LOCAL_INFERENCE_API_KEY in ai-cluster/.env}
+    networks:
+      - ai-cluster-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health', timeout=5)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    profiles:
+      - headless
+      - ui
+      - cloud
+
+  coding-backend-alt:
+    image: python:3.12-alpine
+    command:
+      - python
+      - /app/mock-openai-backend.py
+      - --mode
+      - chat
+      - --port
+      - "8083"
+      - --name
+      - local-coding-alt
+    volumes:
+      - ./tests/fixtures/mock-openai-backend.py:/app/mock-openai-backend.py:ro
+    environment:
+      BACKEND_API_KEY: ${LOCAL_INFERENCE_API_KEY:?Set LOCAL_INFERENCE_API_KEY in ai-cluster/.env}
+    networks:
+      - ai-cluster-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8083/health', timeout=5)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    profiles:
+      - cloud
+
+  coding-backend-rate-limit:
+    image: python:3.12-alpine
+    command:
+      - python
+      - /app/mock-openai-backend.py
+      - --mode
+      - rate-limit
+      - --port
+      - "8084"
+      - --name
+      - local-coding-rate-limit
+    volumes:
+      - ./tests/fixtures/mock-openai-backend.py:/app/mock-openai-backend.py:ro
+    environment:
+      BACKEND_API_KEY: ${LOCAL_INFERENCE_API_KEY:?Set LOCAL_INFERENCE_API_KEY in ai-cluster/.env}
+    networks:
+      - ai-cluster-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8084/health', timeout=5)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    profiles:
+      - cloud
+
+  coding-backend-malformed:
+    image: python:3.12-alpine
+    command:
+      - python
+      - /app/mock-openai-backend.py
+      - --mode
+      - malformed
+      - --port
+      - "8085"
+      - --name
+      - local-coding-malformed
+    volumes:
+      - ./tests/fixtures/mock-openai-backend.py:/app/mock-openai-backend.py:ro
+    environment:
+      BACKEND_API_KEY: ${LOCAL_INFERENCE_API_KEY:?Set LOCAL_INFERENCE_API_KEY in ai-cluster/.env}
+    networks:
+      - ai-cluster-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8085/health', timeout=5)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    profiles:
+      - cloud
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.6.6
+    environment:
+      WEBUI_AUTH: ${WEBUI_AUTH:-true}
+      WEBUI_SESSION_COOKIE_SAME_SITE: ${WEBUI_SESSION_COOKIE_SAME_SITE:-strict}
+      WEBUI_SESSION_COOKIE_SECURE: ${WEBUI_SESSION_COOKIE_SECURE:-false}
+      WEBUI_AUTH_COOKIE_SAME_SITE: ${WEBUI_AUTH_COOKIE_SAME_SITE:-strict}
+      WEBUI_AUTH_COOKIE_SECURE: ${WEBUI_AUTH_COOKIE_SECURE:-false}
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:?Set WEBUI_SECRET_KEY in ai-cluster/.env}
+      DEFAULT_USER_ROLE: ${DEFAULT_USER_ROLE:-pending}
+      ENABLE_PERSISTENT_CONFIG: ${ENABLE_PERSISTENT_CONFIG:-false}
+      OPENAI_API_BASE_URL: http://gateway:4000/v1
+      OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
+    ports:
+      - "127.0.0.1:3001:8080"
+    volumes:
+      - webui-data:/app/backend/data
+    networks:
+      - ai-cluster-net
+    depends_on:
+      gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    restart: unless-stopped
+    profiles:
+      - ui
+
+  cloud-placeholder:
+    image: curlimages/curl:8.9.1
+    command: ["sh", "-c", "echo cloud profile enabled && sleep infinity"]
+    networks:
+      - ai-cluster-net
+    restart: unless-stopped
+    profiles:
+      - cloud
+
+  intel-sycl-linux-placeholder:
+    image: ubuntu:24.04
+    command: ["bash", "-lc", "echo intel-sycl-linux profile placeholder; sleep infinity"]
+    devices:
+      - /dev/dri:/dev/dri
+    networks:
+      - ai-cluster-net
+    restart: unless-stopped
+    profiles:
+      - intel-sycl-linux
+
+networks:
+  ai-cluster-net:
+
+volumes:
+  litellm-data:
+  webui-data:

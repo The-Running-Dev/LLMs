@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "providers": [
+    {
+      "name": "coding",
+      "executable_path": "C:/tools/llama.cpp/llama-server.exe",
+      "model_path": "D:/Models/coding-model.gguf",
+      "expected_sha256": "replace_me_sha256",
+      "api_key_env_var": "LOCAL_INFERENCE_API_KEY",
+      "listen_host": "127.0.0.1",
+      "port": 8081,
+      "health_path": "/health",
+      "default_ctx": 8192,
+      "default_gpu_layers": 60,
+      "embeddings": false,
+      "extra_args": [
+        "--no-webui"
+      ]
+    },
+    {
+      "name": "embeddings",
+      "executable_path": "C:/tools/llama.cpp/llama-server.exe",
+      "model_path": "D:/Models/embeddings-model.gguf",
+      "expected_sha256": "replace_me_sha256",
+      "api_key_env_var": "LOCAL_INFERENCE_API_KEY",
+      "listen_host": "127.0.0.1",
+      "port": 8082,
+      "health_path": "/health",
+      "default_ctx": 4096,
+      "default_gpu_layers": 40,
+      "embeddings": true,
+      "extra_args": [
+        "--no-webui"
+      ]
+    }
+  ]
+}

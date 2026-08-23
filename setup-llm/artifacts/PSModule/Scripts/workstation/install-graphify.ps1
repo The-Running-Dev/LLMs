@@ -22,13 +22,9 @@ if ($WhatIfPreference -and -not (Test-CommandAvailable -Name 'uv')) {
 Assert-CommandAvailable -Name 'uv' -InstallHint 'Run the platform setup script to install uv, or install it from https://docs.astral.sh/uv/getting-started/installation/.'
 
 if ($PSCmdlet.ShouldProcess('graphifyy', 'Install or upgrade uv tool')) {
-    $installedTools = & uv tool list 2>&1 | Out-String
-    if ($installedTools -match '(?m)^graphifyy\s') {
-        Invoke-NativeCommand -FilePath 'uv' -ArgumentList @('tool', 'upgrade', 'graphifyy')
-    }
-    else {
-        Invoke-NativeCommand -FilePath 'uv' -ArgumentList @('tool', 'install', 'graphifyy')
-    }
+    # uv tool install replaces an existing tool, while --upgrade refreshes its
+    # package resolution. This covers both states without a separate list probe.
+    Invoke-NativeCommand -FilePath 'uv' -ArgumentList @('tool', 'install', '--upgrade', 'graphifyy')
 }
 
 

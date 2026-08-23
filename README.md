@@ -11,12 +11,15 @@ The complete setup documentation is published at **[workspace.subzerodev.com](ht
 - [Quick Start](setup-llm/docs/getting-started/quickstart.md) — create and open a new AI-assisted project with the shortest supported workflow.
 - [Start a New Project](setup-llm/docs/getting-started/new-project.md) — follow the complete Claude Desktop, Claude Code, and Codex workflow.
 - [Setup Overview](setup-llm/docs/index.md) — understand the combined setup, authentication, integrations, and platform prerequisites. On the published site, this page is available at [the documentation root](https://workspace.subzerodev.com/docs/).
+- [AI Cluster Operations](setup-llm/docs/getting-started/ai-cluster-operations.md) — run opt-in setup, doctor checks, startup/smoke/shutdown, and troubleshooting for the Local AI Compute Cluster.
 
 ### Architecture and Setup Design
 
 - [Modular Architecture](setup-llm/docs/architecture/modular-architecture.md) — understand the workstation and project setup modules.
 - [Setup Flowcharts](setup-llm/docs/architecture/setup-flowcharts.md) — review the installation and project-creation flows visually.
 - [Setup Specification](setup-llm/docs/architecture/setup-specification.md) — review inputs, outputs, validation, and required project files.
+- [Local AI Compute Cluster](setup-llm/docs/architecture/local-ai-compute-cluster.md) — review the Issue #16 T3 AI-cluster skeleton, compose profiles, and validation flow.
+- [Memory and RAG Retention Contract](setup-llm/docs/architecture/memory-rag-contract.md) — review retrieval boundaries, index lifecycle, deletion guarantees, and smoke-test expectations for durable memory layers.
 - [Workspace Blueprint](setup-llm/docs/architecture/workspace-blueprint.md) — review the recommended AI development workspace and rollout plan.
 
 ### Reference
@@ -47,13 +50,12 @@ Container setup changes the container environment. Mount `/root/.config` and `/w
 
 ## Repository Layout
 
-| Path | Purpose |
-|------|---------|
-| [`setup-llm/`](setup-llm/) | Cross-platform workstation provisioning, MCP registration, and project scaffolding |
-| [`setup-llm/docs/`](setup-llm/docs/) | Getting-started guides, architecture, reference material, and setup specifications |
-| [`docs-template/`](docs-template/) | Pinned Docusaurus template submodule used to build the documentation site |
-| [`plugins/SubZeroDev.Automator.Plugins.GitHub/`](plugins/SubZeroDev.Automator.Plugins.GitHub/) | CLI-first GitHub integration plugin and normalized project model |
-| `SubZeroDev.Workspace.code-workspace` | VS Code workspace definition |
+| Path                                                                       | Purpose                                                                            |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [`setup-llm/`](setup-llm/)                                                 | Cross-platform workstation provisioning, MCP registration, and project scaffolding |
+| [`setup-llm/docs/`](setup-llm/docs/)                                       | Getting-started guides, architecture, reference material, and setup specifications |
+| [`docs-template/`](docs-template/)                                         | Pinned Docusaurus template submodule used to build the documentation site          |
+| `SubZeroDev.Workspace.code-workspace`                                      | VS Code workspace definition                                                       |
 
 ## Quick Start
 
@@ -66,15 +68,34 @@ The setup scripts support Windows, macOS, and Ubuntu/Debian. PowerShell automati
 
 The preview command shows prerequisite actions without installing them. The second command performs workstation setup while omitting the optional third-party `claude-mem` integration.
 
+## Local AI Cluster (Opt-in)
+
+The Local AI Compute Cluster is not part of default workstation setup and does not auto-download model artifacts.
+
+Initialize local templates and run baseline validation:
+
+```powershell
+./setup-llm/scripts/setup-ai-cluster.ps1 -InitializeEnv -InitializeLocalInferenceConfig -RunHeadlessConfigTest
+```
+
+Run an operator doctor summary:
+
+```powershell
+./setup-llm/scripts/doctor-ai-cluster.ps1
+./setup-llm/scripts/doctor-ai-cluster.ps1 -RunContracts
+```
+
+Use the VS Code tasks `AI Cluster Setup (Opt-in)` and `AI Cluster Doctor` for task-driven operation.
+
 ## Workstation Setup
 
 ### Supported Platforms
 
-| Platform | Prerequisite installer | Package tooling |
-|----------|------------------------|-----------------|
-| Windows | `setup-llm/scripts/setup-windows.ps1` | Winget |
-| macOS | `setup-llm/scripts/setup-macos.ps1` | Homebrew and npm |
-| Ubuntu/Debian | `setup-llm/scripts/setup-ubuntu.ps1` | apt, pipx, and npm |
+| Platform      | Prerequisite installer                | Package tooling    |
+| ------------- | ------------------------------------- | ------------------ |
+| Windows       | `setup-llm/scripts/setup-windows.ps1` | Winget             |
+| macOS         | `setup-llm/scripts/setup-macos.ps1`   | Homebrew and npm   |
+| Ubuntu/Debian | `setup-llm/scripts/setup-ubuntu.ps1`  | apt, pipx, and npm |
 
 Use `setup-llm/scripts/setup.ps1` for normal operation. It detects the OS and dispatches to the matching platform script. `setup-llm/scripts/setup-workstation.ps1` contains the shared Graphify, memory, and MCP configuration used after platform prerequisites are available.
 
@@ -103,6 +124,8 @@ Recommended first run without third-party session memory:
 
 The default setup installs or configures Node.js, the selected assistant CLIs, GitHub CLI, `act`, Astral `uv`, Graphify, Claude Code memory support, optional `claude-mem`, GitHub MCP, and Playwright MCP.
 
+For a VS Code task-driven flow, run **Tasks: Run Task** and select **Workstation Setup + Memory/Context7/GitHub/Docker MCP**. This task runs the standard workstation setup and then registers Context7 and Docker MCP servers for both Codex and Claude Code.
+
 Select one or both supported clients:
 
 ```powershell
@@ -116,11 +139,14 @@ Skip optional components when they are not required:
 ```powershell
 ./setup-llm/scripts/setup.ps1 `
   -Client Both `
+  -IncludeMemoryMcp `
   -SkipGraphify `
   -SkipClaudeMem `
   -SkipGitHub `
   -SkipPlaywright
 ```
+
+Use `-IncludeMemoryMcp` only when you need shared memory across multiple tools or agents through MCP. Leave it off for normal single-tool workflows.
 
 ### Restrict Filesystem MCP
 
@@ -191,9 +217,17 @@ The shared setup orchestrator calls focused installers:
 - `setup-llm/scripts/workstation/install-github-mcp.ps1`
 - `setup-llm/scripts/workstation/install-filesystem-mcp.ps1`
 - `setup-llm/scripts/workstation/install-playwright-mcp.ps1`
+- `setup-llm/scripts/workstation/install-memory-mcp.ps1`
 - `setup-llm/scripts/workstation/install-database-mcp.ps1`
 
 Most component scripts preserve existing registrations. The GitHub installer intentionally replaces the existing `github` registration so it points to the Compose-managed service.
+
+The root workspace task file is available at `.vscode/tasks.json` and includes:
+
+- `Workstation Setup (Preview)`
+- `Workstation Setup`
+- `Workstation Setup (No claude-mem)`
+- `Workstation Setup + Memory/Context7/GitHub/Docker MCP`
 
 ## Create a Project
 

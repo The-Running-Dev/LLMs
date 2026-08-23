@@ -60,6 +60,8 @@ Before running the setup script, verify:
 | `-SkipClaudeMem` | Switch | No | $false | Skip optional third-party `claude-mem` |
 | `-SkipGitHub` | Switch | No | $false | Skip GitHub CLI and GitHub MCP setup |
 | `-SkipPlaywright` | Switch | No | $false | Skip Playwright MCP registration |
+| `-IncludeContext7` | Switch | No | $false | Register the optional Context7 MCP profile |
+| `-IncludeDockerMcp` | Switch | No | $false | Register the optional Docker MCP profile |
 | `-IncludeDatabase` | Switch | No | $false | Register a separately reviewed database MCP server |
 
 ### 3.3 Installation Components
@@ -73,6 +75,8 @@ The setup script installs and configures:
 | **Claude Memory** | Persistent memory system (claude-mem) | Claude Code, Codex | Yes |
 | **GitHub MCP** | GitHub API access via Docker | Claude Code, Codex | Yes |
 | **Playwright MCP** | Browser automation | Claude Code, Codex | Yes |
+| **Context7 MCP** | Documentation and library context retrieval | Claude Code, Codex | Optional |
+| **Docker MCP** | Docker control and inspection | Claude Code, Codex | Optional |
 
 ## Container Architecture
 
@@ -87,6 +91,8 @@ The setup script installs and configures:
 | `pwsh` | Starts PowerShell for direct inspection or script execution |
 
 Container setup is isolated from the host. `/root/.config` and `/workspace` are declared as persistence points. Docker-based MCP integrations require an explicit host socket mount, which grants the container control of the host Docker daemon.
+
+MCP registrations live on a separate MCP tool plane from the model gateway. The setup flow only wires approved tools and profile registrations; it does not grant those tools access to model routing credentials or private provider endpoints.
 
 The GitHub workflow validates the documentation and container independently. Pull requests produce a downloadable OCI archive without publishing it. On `main`, the workflow also authenticates with `GITHUB_TOKEN` and publishes SHA and `latest` image tags to GitHub Container Registry.
 | **Filesystem MCP** | Local file system access | Claude Code, Codex | Conditional |
@@ -287,6 +293,8 @@ Available tools:
 - **Filesystem MCP:** Access project files
 - **GitHub MCP:** Query GitHub issues, PRs, and actions
 - **Playwright MCP:** Test browser behavior when needed
+- **Context7 MCP:** Retrieve current library and documentation context when a project needs it
+- **Docker MCP:** Inspect and manage Docker-based workflows when the task explicitly requires it
 
 ## Memory & Knowledge
 

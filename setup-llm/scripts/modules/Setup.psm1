@@ -35,13 +35,23 @@ function Test-CommandAvailable {
     return $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function Test-IsWindowsPlatform {
+    # $IsWindows does not exist on PowerShell 5.1, so the version test must stay first.
+    return $PSVersionTable.PSVersion.Major -le 5 -or $IsWindows
+}
+
+function Get-PathComparer {
+    if (Test-IsWindowsPlatform) { return [System.StringComparer]::OrdinalIgnoreCase }
+    return [System.StringComparer]::Ordinal
+}
+
 function Update-SessionPath {
     $separator = [System.IO.Path]::PathSeparator
-    $persistentPaths = if ($PSVersionTable.PSVersion.Major -le 5 -or $IsWindows) {
+    $persistentPaths = if (Test-IsWindowsPlatform) {
         @(
             [Environment]::GetEnvironmentVariable('Path', 'Machine')
             [Environment]::GetEnvironmentVariable('Path', 'User')
-        ) -join $separator
+        )
     }
     else {
         @(
@@ -49,19 +59,51 @@ function Update-SessionPath {
             '/opt/homebrew/bin'
             '/usr/local/bin'
             '/home/linuxbrew/.linuxbrew/bin'
-        ) -join $separator
+        )
     }
 
-    # Preserve process-only entries while making newly installed commands
-    # available without requiring the user to restart PowerShell.
-    $env:PATH = "$persistentPaths$separator$env:PATH"
+    $seenPaths = [System.Collections.Generic.HashSet[string]]::new((Get-PathComparer))
+
+    $mergedPaths = foreach ($source in @($persistentPaths) + @($env:PATH)) {
+        foreach ($pathEntry in $source -split [regex]::Escape($separator)) {
+            # Untrimmed entries would otherwise defeat deduplication and regrow PATH.
+            $trimmedEntry = $pathEntry.Trim()
+            if (-not [string]::IsNullOrWhiteSpace($trimmedEntry) -and $seenPaths.Add($trimmedEntry)) {
+                $trimmedEntry
+            }
+        }
+    }
+
+    $env:PATH = $mergedPaths -join $separator
+}
+
+function Add-DirectoryToSessionPath {
+    param([Parameter(Mandatory)][string]$Directory)
+
+    $separator = [System.IO.Path]::PathSeparator
+    $comparer = Get-PathComparer
+    $targetDirectory = $Directory.Trim()
+
+    $remainingEntries = $env:PATH -split [regex]::Escape($separator) |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and -not $comparer.Equals($_, $targetDirectory) }
+
+    $env:PATH = (@($targetDirectory) + @($remainingEntries)) -join $separator
 }
 
 function Get-NpxCommand {
-    if ($PSVersionTable.PSVersion.Major -le 5 -or $IsWindows) {
+    if (Test-IsWindowsPlatform) {
         return @{ FilePath = 'cmd'; PrefixArguments = @('/c', 'npx') }
     }
     return @{ FilePath = 'npx'; PrefixArguments = @() }
+}
+
+function Get-NpmCommand {
+    if (Test-IsWindowsPlatform) {
+        $npmCommand = Get-Command 'npm.cmd' -ErrorAction Stop
+        return @{ FilePath = $npmCommand.Source; PrefixArguments = @() }
+    }
+    return @{ FilePath = 'npm'; PrefixArguments = @() }
 }
 
 function Assert-CommandAvailable {
@@ -1001,7 +1043,11 @@ Export-ModuleMember -Function @(
     'Write-Success'
     'Write-WarningMessage'
     'Test-CommandAvailable'
+    'Test-IsWindowsPlatform'
+    'Get-PathComparer'
     'Update-SessionPath'
+    'Add-DirectoryToSessionPath'
+    'Get-NpmCommand'
     'Get-NpxCommand'
     'Assert-CommandAvailable'
     'Invoke-NativeCommand'

@@ -7,6 +7,9 @@ param(
     [switch]$SkipGitHub,
     [switch]$SkipPlaywright,
     [switch]$SkipGraphify,
+    [switch]$IncludeContext7,
+    [switch]$IncludeMemoryMcp,
+    [switch]$IncludeDockerMcp,
 
     [switch]$IncludeFilesystem,
     [string[]]$FilesystemPath = @(),
@@ -43,7 +46,7 @@ if (-not $SkipGraphify) {
 }
 
 if ($Client -in @('ClaudeCode', 'Both')) {
-    Invoke-SetupScript -ScriptName 'install-claude-memory.ps1'
+    Invoke-SetupScript -ScriptName 'install-claude-memory.ps1' -Parameters @{ WhatIf = $WhatIfPreference }
 
     if (-not $SkipClaudeMem) {
         Invoke-SetupScript -ScriptName 'install-claude-mem.ps1' -Parameters @{ WhatIf = $WhatIfPreference }
@@ -56,6 +59,18 @@ if (-not $SkipGitHub) {
 
 if (-not $SkipPlaywright) {
     Invoke-SetupScript -ScriptName 'install-playwright-mcp.ps1' -Parameters @{ Client = $Client; WhatIf = $WhatIfPreference }
+}
+
+if ($IncludeContext7) {
+    Invoke-SetupScript -ScriptName 'install-context7-mcp.ps1' -Parameters @{ Client = $Client; WhatIf = $WhatIfPreference }
+}
+
+if ($IncludeMemoryMcp) {
+    Invoke-SetupScript -ScriptName 'install-memory-mcp.ps1' -Parameters @{ Client = $Client; WhatIf = $WhatIfPreference }
+}
+
+if ($IncludeDockerMcp) {
+    Invoke-SetupScript -ScriptName 'install-docker-mcp.ps1' -Parameters @{ Client = $Client; WhatIf = $WhatIfPreference }
 }
 
 if ($IncludeFilesystem) {

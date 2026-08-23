@@ -16,7 +16,7 @@ function Wait-DockerEngine {
 
     if (Test-DockerEngineRunning) { return }
 
-    if (-not ($PSVersionTable.PSVersion.Major -le 5 -or $IsWindows)) {
+    if (-not (Test-IsWindowsPlatform)) {
         throw 'The Docker CLI is installed, but its engine is not running. Start Docker Desktop (macOS) or the Docker service (Linux), then rerun the setup.'
     }
 
@@ -78,7 +78,7 @@ function Remove-ClaudeMcpServerFromScope {
 
     $output = & claude mcp remove $Name --scope $Scope 2>&1 | Out-String
     if ($LASTEXITCODE -eq 0) { return }
-    if ($output -match '(?i)not found|does not exist|no MCP server') { return }
+    if ($output -match '(?i)not found|does not exist|no .*MCP server.*found') { return }
     throw "Failed to remove Claude MCP server '$Name' from the $Scope scope: $($output.Trim())"
 }
 
