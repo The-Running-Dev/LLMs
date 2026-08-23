@@ -7,6 +7,19 @@ Append-only. Newest at the top. The rejected alternatives are the point — with
 
 ---
 
+### 2026-08-23 — Re-install: sync cores/tools to kit HEAD `9911712`, catch `AGENTS.md` up
+Context: a re-install from `SubZeroDev.AgentKit` (kit HEAD `9911712619cd3e6522d015158edf702371a5971c`), reconciling this repository, which was last synced at `syncedCommit` `80a19bdd25d715248ba40fdad93eddd2e2538984` (2026-08-20, PR #36, already merged to `main`). `.claude/kit.json`'s `commit` field was still `6bdd8dcc` — the 2026-08-13 install's own record — never advanced to `80a19bd`, evidently missed by that pass.
+Chosen:
+- `.claude/commands/{done,install-all,kit-help,kit-sync}.md`, `install-code-review-agent.md` (new) — taken outright via `tools/Sync-Kit.ps1`, no reconciliation; cores are the kit's.
+- `tools/{Read-DesignState,Test-CIWorkflow,Test-DesignState,Update-DesignProjection}.Tests.ps1`, `tools/Invoke-CodexCommand.ps1` (new) — same, taken outright.
+- `AGENTS.md` — hand-reconciled four spots stale since the 2026-08-13 merge: added the `/install-code-review-agent` routing row; widened the *External writes* carve-out to name `/install`/`/kit-sync` opening PRs (and `/install-all`'s deliberate exclusion); added the new *Marked regions* section; updated the agent-block bullet to reference it instead of restating the marker form inline. None competed with the target's own `Project identity` section or any target-authored rule — this was the kit's rule content advancing past what the target had merged, not a value conflict.
+- `.github/ISSUE_TEMPLATE/bug.md` — left untouched. The kit's wording changed, but the target already has its own template; `INSTALL.md` phase 1 stops on divergence here rather than reconciling.
+- `.claude/kit.json` — `commit` advances to `9911712619cd3e6522d015158edf702371a5971c`, `installed` to `2026-08-23`, `syncedCommit` left as `Sync-Kit.ps1` wrote it.
+Rejected:
+- Leaving `AGENTS.md`'s four gaps unmerged — the alternative was to defer them to a later install, which is exactly the drift the 2026-08-13 entry's own missed `commit` bump shows compounds silently.
+- Overwriting `.github/ISSUE_TEMPLATE/bug.md` with the kit's newer wording — rejected per `INSTALL.md`'s explicit rule: a target with its own template has its own triage process, and silent replacement changes how every future issue is filed.
+Reversibility: cheap — each file change here is independently revertible; the `AGENTS.md` edits are additive except the one routing-row relocation, which is cosmetic (table order only).
+
 ### 2026-08-13 — Install `design/`, the `codex/PROFILES.md` seed, and the `Measure-Session.ps1` hooks
 Context: an interactive `/install` from SubZeroDev.AgentKit (kit commit `6bdd8dcc347bb3c09a746bb27a204e7fbb205d49`) reconciling this repository, which already carried the kit's command cores, `agent.md`, and `AGENTS.md`/`CLAUDE.md` from an earlier unattended `/install-all` run (kit commit `9b8313cd67cbfbf38c95d105b7f35fffe341532d`, 2026-08-04) that left several named forks unresolved because an unattended pass cannot decide them.
 Chosen:
