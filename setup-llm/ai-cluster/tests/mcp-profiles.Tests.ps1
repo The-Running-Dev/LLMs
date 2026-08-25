@@ -42,8 +42,8 @@ Write-Output 'filesystem'
 
         $exitCode | Should -Be 0
         $parsed = ($output -join [Environment]::NewLine) | ConvertFrom-Json
-        @($parsed).Count | Should -Be 5
-        @($parsed | Where-Object { $_.status -eq 'missing' }).Count | Should -Be 2
+        @($parsed).Count | Should -Be 6
+        @($parsed | Where-Object { $_.status -eq 'missing' }).Count | Should -Be 3
     }
 
     It 'returns a failing exit code for unhealthy profiles in JSON mode' {
@@ -61,7 +61,7 @@ Write-Output 'filesystem'
 
         $exitCode | Should -Be 1
         $parsed = ($output -join [Environment]::NewLine) | ConvertFrom-Json
-        @($parsed).Count | Should -Be 5
-        @($parsed | Where-Object { $_.status -eq 'missing' }).Count | Should -Be 5
+        @($parsed).Count | Should -Be 6
+        @($parsed | Where-Object { $_.status -eq 'missing' }).Count | Should -Be 6
     }
 }
