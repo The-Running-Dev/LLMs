@@ -78,7 +78,7 @@ function Remove-ClaudeMcpServerFromScope {
 
     $output = & claude mcp remove $Name --scope $Scope 2>&1 | Out-String
     if ($LASTEXITCODE -eq 0) { return }
-    if ($output -match '(?i)not found|does not exist|no .*MCP server.*found') { return }
+    if ($output -match '(?i)not found|does not exist|no .*MCP server named') { return }
     throw "Failed to remove Claude MCP server '$Name' from the $Scope scope: $($output.Trim())"
 }
 
