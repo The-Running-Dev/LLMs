@@ -28,8 +28,15 @@ Describe 'CI workflow: the Run Pester tests step is authenticated (#79)' {
         # discovery and run as separate passes, and a $script: variable set during discovery is
         # not in scope here. Only -Skip: may read that one, because -Skip: is evaluated during
         # discovery.
+        #
+        # BeforeAll still runs even when the block's only It is -Skip:'d, so this recomputes
+        # and re-checks the same skip condition rather than reading the file unconditionally -
+        # otherwise a target with no verify.yml (the compatibility promise this test documents)
+        # fails here instead of skipping.
         $script:WorkflowPath = Join-Path (Split-Path $PSScriptRoot -Parent) '.github/workflows/verify.yml'
-        $script:Lines = Get-Content -LiteralPath $script:WorkflowPath
+        $skip = -not (Test-Path $script:WorkflowPath) -or
+            -not (Select-String -LiteralPath $script:WorkflowPath -Pattern '- name: Check the design state against the tree' -Quiet)
+        $script:Lines = if ($skip) { @() } else { Get-Content -LiteralPath $script:WorkflowPath }
     }
 
     It 'the "Run Pester tests" step carries a GH_TOKEN env, the same as "Check the design state against the tree"' -Skip:$script:SkipCIWorkflowGhTokenTest {
