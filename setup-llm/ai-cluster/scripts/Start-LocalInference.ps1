@@ -77,7 +77,7 @@ foreach ($provider in $config.providers) {
 
     $exePath = [string]$provider.executable_path
     $modelPath = [string]$provider.model_path
-    $host = if ([string]::IsNullOrWhiteSpace([string]$provider.listen_host)) { '127.0.0.1' } else { [string]$provider.listen_host }
+    $listenHost = if ([string]::IsNullOrWhiteSpace([string]$provider.listen_host)) { '127.0.0.1' } else { [string]$provider.listen_host }
     $port = [int]$provider.port
     $healthPath = if ([string]::IsNullOrWhiteSpace([string]$provider.health_path)) { '/health' } else { [string]$provider.health_path }
     $apiKeyEnvVar = [string]$provider.api_key_env_var
@@ -120,7 +120,7 @@ foreach ($provider in $config.providers) {
     }
 
     $args = @(
-        '--host', $host,
+        '--host', $listenHost,
         '--port', "$port",
         '--model', $modelPath,
         '--api-key', $apiKey,
@@ -148,7 +148,7 @@ foreach ($provider in $config.providers) {
     if ($PSCmdlet.ShouldProcess($name, 'Start local inference provider process')) {
         $process = Start-Process -FilePath $exePath -ArgumentList $args -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog -PassThru -WindowStyle Hidden
 
-        $healthUrl = "http://$host:$port$healthPath"
+        $healthUrl = "http://${listenHost}:$port$healthPath"
         $healthy = $false
         for ($attempt = 1; $attempt -le 20; $attempt++) {
             Start-Sleep -Seconds 1
@@ -166,7 +166,7 @@ foreach ($provider in $config.providers) {
             pid = $process.Id
             executable_path = $exePath
             model_path = $modelPath
-            endpoint = "http://$host:$port/v1"
+            endpoint = "http://${listenHost}:$port/v1"
             health_url = $healthUrl
             status = if ($healthy) { 'healthy' } else { 'starting' }
             started_at_utc = (Get-Date).ToUniversalTime().ToString('o')

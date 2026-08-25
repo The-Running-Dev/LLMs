@@ -24,21 +24,21 @@ $target = @($Provider)
 foreach ($entry in $pids.providers) {
     if ($target.Count -gt 0 -and $entry.name -notin $target) { continue }
     if (-not $entry.pid) { continue }
-    $pid = [int]$entry.pid
-    $proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
+    $processId = [int]$entry.pid
+    $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
 
     if ($null -eq $proc) {
-        Write-Host "Provider '$($entry.name)' PID $pid is not running (stale state)." -ForegroundColor Yellow
+        Write-Host "Provider '$($entry.name)' PID $processId is not running (stale state)." -ForegroundColor Yellow
         continue
     }
 
-    if ($PSCmdlet.ShouldProcess("PID $pid", "Stop provider '$($entry.name)'")) {
+    if ($PSCmdlet.ShouldProcess("PID $processId", "Stop provider '$($entry.name)'")) {
         try {
-            Stop-Process -Id $pid -ErrorAction Stop
-            Write-Host "Stopped $($entry.name) (PID $pid)." -ForegroundColor Green
+            Stop-Process -Id $processId -ErrorAction Stop
+            Write-Host "Stopped $($entry.name) (PID $processId)." -ForegroundColor Green
         }
         catch {
-            Write-Warning "Could not stop $($entry.name) PID $pid: $_"
+            Write-Warning "Could not stop $($entry.name) PID ${processId}: $_"
         }
     }
 }
